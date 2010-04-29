@@ -103,13 +103,6 @@ class BotBlock extends BotAlert {
 		}
 		return true;
 	}
-	function addButtonHandler( &$out ) {
-		if (! self::$injectHere ) return true;
-		$text =& $out->mBodytext;
-		$repl = 'onclick="triggerPramana(document.'.$this->formname.', '.$this->refid.');"';
-		$text = str_replace( 'name="'.$this->buttonname.'"', 'name="'.$this->buttonname.'" '. $repl, $text );
-		return true;
-	}
         function verdict() {
 		if( $this->VERD() ) {
                         $this->log( "human" );
@@ -153,6 +146,13 @@ class BotAlert {
                             </script>" .
                             file_get_contents("http://$wgBotAlertConfigCustID.botalert.com/AUTH?custid=$wgBotAlertConfigCustID&auth=$wgBotAlertConfigAuthToken") .
                         "</div>\n";
+		return true;
+	}
+	function addButtonHandler( &$out ) {
+		if (! self::$injectHere ) return true;
+		$text =& $out->mBodytext;
+		$repl = 'onclick="triggerPramana(document.'.$this->formname.', '.$this->refid.');"';
+		$text = str_replace( 'name="'.$this->buttonname.'"', 'name="'.$this->buttonname.'" '. $repl, $text );
 		return true;
 	}
 	function injectUserLogin( &$template ) {
