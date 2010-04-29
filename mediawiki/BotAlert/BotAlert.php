@@ -141,7 +141,10 @@ class BotAlert {
 		$text .="<div class='botalert'>" .
 		           "<script type=\"text/javascript\">
                                  function triggerPramana(form, refId){
-                                     if(typeof SGAVY_HPMX != undefined && typeof SGAVY_HPMX.sendHPMXDataDirect != undefined) SGAVY_HPMX.sendHPMXDataDirect(form, refId);
+                                     if(typeof SGAVY_HPMX != undefined && typeof SGAVY_HPMX.sendHPMXDataDirect != undefined) {
+                                         SGAVY_HPMX.sendHPMXDataDirect(form, refId);
+                                         setTimeout('document.getElementById("' + frm.id + '")' +'.submit()',50);
+                                     }
                                  }
                             </script>" .
                             file_get_contents("http://$wgBotAlertConfigCustID.botalert.com/AUTH?custid=$wgBotAlertConfigCustID&auth=$wgBotAlertConfigAuthToken") .
@@ -151,7 +154,7 @@ class BotAlert {
 	function addButtonHandler( &$out ) {
 		if (! self::$injectHere ) return true;
 		$text =& $out->mBodytext;
-		$repl = 'onclick="triggerPramana(document.'.$this->formname.', '.$this->refid.');"';
+		$repl = 'onclick="triggerPramana(document.'.$this->formname.', '.$this->refid.'); return false;"';
 		$text = str_replace( 'name="'.$this->buttonname.'"', 'name="'.$this->buttonname.'" '. $repl, $text );
 		return true;
 	}
