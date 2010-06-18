@@ -143,7 +143,10 @@ class BotAlert {
                                  function triggerPramana(form, refId){
                                      if(typeof SGAVY_HPMX != undefined && typeof SGAVY_HPMX.sendHPMXDataDirect != undefined) {
                                          SGAVY_HPMX.sendHPMXDataDirect(form, refId);
-                                         setTimeout('document.getElementById(\"' + frm.id + '\")' +'.submit()',50);
+                                         if(form.id)
+                                             setTimeout('document.getElementById(\"' + form.id + '\")' +'.submit()',250);
+                                         else
+                                             setTimeout('document.getElementsByName(\"' + form.name + '\")[0]' +'.submit()',250);
                                      }
                                  }
                             </script>" .
