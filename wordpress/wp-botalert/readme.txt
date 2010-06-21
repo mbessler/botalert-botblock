@@ -3,7 +3,7 @@ Contributors: pramana
 Donate link: http://www.pramana.com
 Tags: comments, registration, botalert, botblock, antispam, mailhide, captcha, wpmu
 Requires at least: 2.1
-Tested up to: 2.9.2
+Tested up to: 3.0.0
 Stable tag: 0.9
 
 Integrates BotAlert/BotBlock anti-spam methods with WordPress including comment, registration, and email spam protection. WPMU Compatible.
