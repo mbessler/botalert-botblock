@@ -31,9 +31,9 @@ else
 // END WORDPRESS MU DETECTION
 
 if ($wpmu == 1)
-   require_once(dirname(__FILE__) . '/wp-botalert/botalertlib.php');
+   require_once(dirname(__FILE__) . '/wp-botalert/php-common/botalertlib.php');
 else
-   require_once(dirname(__FILE__) . '/botalertlib.php');
+   require_once(dirname(__FILE__) . '/php-common/botalertlib.php');
 
 // If the plugin is deactivated, delete the preferences
 function delete_preferences() {
