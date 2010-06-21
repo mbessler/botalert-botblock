@@ -25,15 +25,17 @@ To install in regular WordPress:
 1. Upload the `wp-botalert` folder to the `/wp-content/plugins/` directory
 1. Activate the plugin through the `Plugins` menu in WordPress
 1. Get your BotAlert/BotBlock keys (aka. CustID and AuthToken) [here](http://pramana.com/account "Sign up for a BotAlert/BotBlock account").
-1. Without auto-wiring (not yet available in this version), connect the Submit buttons to the `triggerPramana()` handler in your theme(s):
+1. Select whether you want to use auto-wiring for forms, or to manually add 'onclick=' handlers to trigger validation at form submission:
+   1. With auto-wiring you don't need to modify any themes or any other files, just select "Enable Form Autowiring" in the configuration.
+   1. Without auto-wiring, connect the Submit buttons to the `triggerPramana()` handler in your theme(s):
 
-   for the default theme:
+      for the default theme:
 
-    * for new user registration in `wp-login.php`, add `<?php global $botalert_opt; echo ($botalert_opt['ba_registration'])? 'onclick="triggerPramana(this.form,this.form.user_email.value);"':'' ?>` to the `<input type="submit ...>` button like this:
+       * for new user registration in `wp-login.php`, add `<?php global $botalert_opt; echo ($botalert_opt['ba_registration'])? 'onclick="triggerPramana(this.form,this.form.user_email.value);"':'' ?>` to the `<input type="submit ...>` button like this:
 
             `<p class="submit"><input type="submit" name="wp-submit" id="wp-submit" class="button-primary" value="<?php esc_attr_e('Register'); ?>" <?php global $botalert_opt; echo ($botalert_opt['ba_registration'])? 'onclick="triggerPramana(this.form,this.form.user_email.value);"':'' ?>  tabindex="100" /></p>`
 
-    * for comment posting in `wp-content/themes/default/comments.php`, add `<?php global $botalert_opt; echo ($botalert_opt['ba_comments']==1)? 'onclick="triggerPramana(this.form,this.form.email.value);"':'' ?>` like this:
+       * for comment posting in `wp-content/themes/default/comments.php`, add `<?php global $botalert_opt; echo ($botalert_opt['ba_comments']==1)? 'onclick="triggerPramana(this.form,this.form.email.value);"':'' ?>` like this:
 
              <input name="submit" type="submit" id="submit" tabindex="5" <?php global $botalert_opt; echo ($botalert_opt['ba_comments']==1)? 'onclick="triggerPramana(this.form,this.form.email.value);"':'' ?> value="Submit Comment" />
 
