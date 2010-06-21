@@ -60,13 +60,15 @@ function embed_botalert($errors) {
             <label for="verification">Verification:</label>
             <?php echo($error ? '<p class="error">'.$error.'</p>' : '') ?>
             <?php echo($_GET['rerror']? '<p class="error">RERROR2:'.$_GET['rerror'].'</p>' : '') ?>
-            <?php echo botalert_wp_get_html(); ?>
             <?php 
         }
 	else {
             echo ($_GET['rerror']? '<p class="error">RERROR3' . $_GET['rerror'] . '</p>': '');
-            echo botalert_wp_get_html();
         }
+        if ($botalert_opt['ba_use_autowire'])
+	    echo botalert_AUTHenticateAUTOWIRE($botalert_opt['custid'], $botalert_opt['authtoken'], 'registerform', 'wp-submit', 'user_login');
+        else
+	    echo botalert_AUTHenticate($botalert_opt['custid'], $botalert_opt['authtoken']);
     }
 }
 
@@ -161,6 +163,7 @@ $option_defaults = array (
    'treat_neutral_as_bad' => '0', // whether to treat a neutral score as Bot or Human
    'ba_comments' => '1', // whether or not to use BotAlert/BotBlock on the comment post
    'ba_registration' => '1', // whether or not to use BotAlert/BotBlock on the registration page
+   'ba_use_autowire' => '1', //  whether or not to use auto-wiring of the submit button for BotAlert/BotBlock protected pages
    'botalert_error' => '<strong>ERROR</strong>: Please try again.', // timeout/hpmx error (eg. hpmxRequestId missing)
    'botalert_isbot' => '<strong>ERROR</strong>: Your behavior looks suspicious. If you are a human, please try again.', // the message to display when the user is classified as Bot by BotBlock
 );
@@ -186,10 +189,6 @@ function botalert_wp_hash_comment($id)
 		return md5(BOTALERT_WP_HASH_COMMENT . $botalert_opt['authtoken'] . $id);
 }
 
-function botalert_wp_get_html () {
-	global $botalert_opt;
-	return botalert_AUTHenticate($botalert_opt['custid'], $botalert_opt['authtoken']);
-}
 
 /**
  *  Embeds the BotAlert/BotBlock JS into the comment form.
@@ -222,8 +221,11 @@ function botalert_comment_form() {
 			<input name="submit" type="submit" id="submit-alt" tabindex="6" value="Submit Comment"/> 
 		</noscript>
 COMMENT_FORM;
-
-	echo botalert_wp_get_html() . $comment_string;
+        if ($botalert_opt['ba_use_autowire'])
+	    $ba_snippet = botalert_AUTHenticateAUTOWIRE($botalert_opt['custid'], $botalert_opt['authtoken'], 'commentform', 'submit', 'email');
+        else
+	    $ba_snippet = botalert_AUTHenticate($botalert_opt['custid'], $botalert_opt['authtoken']);
+	echo $ba_snippet . $comment_string;
 }
 
 add_action('comment_form', 'botalert_comment_form');
@@ -344,6 +346,7 @@ function botalert_wp_options_subpanel() {
 		'treat_neutral_as_bad' => '',
 		'ba_comments' => '1',
 		'ba_registration' => '1',
+                'ba_use_autowire' => '1',
       'botalert_error' => '<strong>ERROR</strong>: Please try again.',
       'botalert_isbot' => '<strong>ERROR</strong>: Your behavior looks suspicious. If you are a human, please try again.',
 		);
@@ -360,6 +363,7 @@ function botalert_wp_options_subpanel() {
 		'treat_neutral_as_bad' => $_POST['treat_neutral_as_bad'],
 		'ba_comments' => $_POST['ba_comments'],
 		'ba_registration' => $_POST['ba_registration'],
+                'ba_use_autowire' => $_POST['ba_use_autowire'],
       'botalert_error' => $_POST['botalert_error'],
       'botalert_isbot' => $_POST['botalert_isbot'],
 		);
@@ -441,12 +445,19 @@ function botalert_dropdown_capabilities($select_name, $checked_value="") {
 	    </td>
     </tr>
   	<tr valign="top">
+		<th scope="row">Autowiring Options</th>
+		<td>
+			<!-- Whether or not to auto-wire the forms to trigger the BotAlert/BotBlock validation -->
+			<big><input type="checkbox" name="ba_use_autowire" id="ba_use_autowire" value="1" <?php if($optionarray_def['ba_use_autowire'] == true){echo 'checked="checked"';} ?> /> <label for="ba_use_autowire">Enable Form Autowiring. If enabled, pages where BotAlert/BotBlock is enabled will auto-wire the form and submit element automatically (using Javascript) to trigger the Pramana Botalert/BotBlock validation on form submission.</label></big>
+			<br />
+		</td>
+	</tr>
+  	<tr valign="top">
 		<th scope="row">Comment Options</th>
 		<td>
 			<!-- Use BotAlert/BotBlock on the comment post -->
 			<big><input type="checkbox" name="ba_comments" id="ba_comments" value="1" <?php if($optionarray_def['ba_comments'] == true){echo 'checked="checked"';} ?> /> <label for="ba_comments">Enable BotAlert/BotBlock for comments.</label></big>
 			<br />
-			<?php global $wpmu; if ($wpmu == 1 || $wpmu == 0) { ?>
 		</td>
 	</tr>
 	<tr valign="top">
@@ -455,7 +466,6 @@ function botalert_dropdown_capabilities($select_name, $checked_value="") {
 			<!-- Use BotAlert/BotBlock on the registration page -->
 			<big><input type="checkbox" name="ba_registration" id="ba_registration" value="1" <?php if($optionarray_def['ba_registration'] == true){echo 'checked="checked"';} ?> /> <label for="ba_registration">Enable BotAlert/BotBlock on registration form.</label></big>
 			<br />
-			<?php } ?>
 		</td>
 	</tr>
    <tr valign="top">
