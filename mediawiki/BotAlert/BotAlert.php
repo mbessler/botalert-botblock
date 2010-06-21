@@ -11,14 +11,15 @@ $wgExtensionCredits['other'][] = array(
 	'author' => 'Pramana Inc.'
 );
 
-#global $wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken, $wgBotAlertConfigHaveBotBlock, $wgBotAlertConfigNeutralScoreIsAcceptable;
+#global $wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken, $wgBotAlertConfigHaveBotBlock, $wgBotAlertConfigTreatNeutralAsBad;
 
 #$wgBotAlertConfigCustID = "please_replace_wgBotAlertConfigCustID";
 #$wgBotAlertConfigAuthToken = "please_replace_wgBotAlertConfigAuthToken";
 #$wgBotAlertConfigHaveBotBlock = false;
-#$wgBotAlertConfigNeutralScoreIsAcceptable = true;
+#$wgBotAlertConfigTreatNeutralAsBad = false;
 
 require_once( 'BotAlert.i18n.php' );
+require_once( 'php-common/botalertlib.php' );
 
 global $wgBotAlert, $wgBotAlertClass, $wgBotAlertTriggers;
 global $wgBotAlertConfigHaveBotBlock;
@@ -113,13 +114,10 @@ class BotBlock extends BotAlert {
                 }
         }
  	function VERD() {
-		global $wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken, $wgBotAlertConfigNeutralScoreIsAcceptable;
+		global $wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken, $wgBotAlertConfigTreatNeutralAsBad;
 		global $wgRequest;
-		$hpmxResult = file_get_contents("http://$wgBotAlertConfigCustID.botalert.com/VERD?custid=$wgBotAlertConfigCustID&auth=$wgBotAlertConfigAuthToken&reqid=".$_REQUEST['hpmxRequestId']);
-		#$this->log( "VERD result: $hpmxResult ");
-		if( $hpmxResult == 1 ) return true;
-		if( $wgBotAlertConfigNeutralScoreIsAcceptable and $hpmxResult == 0 ) return true; 
-		return false;
+
+		return botblock_VERDict($wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken, $_REQUEST['hpmxRequestId'], $wgBotAlertConfigTreatNeutralAsBad);
 	}
 	
 }
@@ -138,20 +136,8 @@ class BotAlert {
 		self::$hasRun = true;
 
 		global $wgOut, $wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken;
-		$text .="<div class='botalert'>" .
-		           "<script type=\"text/javascript\">
-                                 function triggerPramana(form, refId){
-                                     if(typeof SGAVY_HPMX != undefined && typeof SGAVY_HPMX.sendHPMXDataDirect != undefined) {
-                                         SGAVY_HPMX.sendHPMXDataDirect(form, refId);
-                                         if(form.id)
-                                             setTimeout('document.getElementById(\"' + form.id + '\")' +'.submit()',250);
-                                         else
-                                             setTimeout('document.getElementsByName(\"' + form.name + '\")[0]' +'.submit()',250);
-                                     }
-                                 }
-                            </script>" .
-                            file_get_contents("http://$wgBotAlertConfigCustID.botalert.com/AUTH?custid=$wgBotAlertConfigCustID&auth=$wgBotAlertConfigAuthToken") .
-                        "</div>\n";
+		$text .= botalert_AUTHenticate($wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken);
+		#$text .= "<div id='botalert'>" . file_get_contents("http://$wgBotAlertConfigCustID.botalert.com/AUTH?custid=$wgBotAlertConfigCustID&auth=$wgBotAlertConfigAuthToken") . "</div>";
 		return true;
 	}
 	function addButtonHandler( &$out ) {
