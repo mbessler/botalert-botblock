@@ -30,7 +30,7 @@ function botalert_AUTHenticate($custid, $authtoken)
 		$use_ssl = true;
 	$url = "http://" . $custid . ".botalert.com/AUTH?custid=" . $custid . "&auth=" . $authtoken;
 	if( $use_ssl ) $url .= "&secure=1";
-	$botalert_snippet = file_get_contents( $url ) 
+	$botalert_snippet = file_get_contents( $url );
 	return $botalert_snippet;
 }
 ?>
