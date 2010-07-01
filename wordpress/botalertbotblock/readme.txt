@@ -22,7 +22,8 @@ For more information please view the [plugin page](http://code.google.com/p/bota
 
 To install in regular WordPress:
 
-1. Make sure you have cURL and php-cURL installed
+1. Make sure you have cURL and php-cURL installed. On some platforms, php comes with cURL compiled in already. 
+    * To test, you can use this PHP snippet:  `<?php if(function_exists("curl_init")) { echo "curl present"; } else { echo "curl NOT installed"; } ?>`
 1. Upload the `botalertbotblock` folder to the `/wp-content/plugins/` directory
 1. Activate the plugin through the `Plugins` menu in WordPress
 1. Get your BotAlert/BotBlock keys (aka. CustID and AuthToken) by creating an account at [pramana.com/account/register](https://pramana.com/account/register "Sign up for a BotAlert/BotBlock account"), then add your domain and click on &ldquo;Service URLs&rdquo; link for your domain on the My Account page.
@@ -75,6 +76,14 @@ BotBlock provides real-time results, so it can be used as a CAPTCHA replacement.
 BotBlock, on the other hand, provides real-time results and thus allow you to prevent spam and abuse when it happens.
 
 Both services will provide you with daily reports via email.
+
+= If using BotAlert, the FREE service, how will I know the results, do I get a report? =
+
+Yes, you will receive a daily report at the email you used for creating an account at pramana.com. This is applicable for both BotAlert and BotBlock users.
+
+= How can I get support =
+
+Please go to our support forum: http://forums.pramana.com/
 
 == Screenshots ==
 
