@@ -79,3 +79,4 @@ Both services will provide you with daily reports via email.
 == Screenshots ==
 
 1. The BotAlert/BotBlock Settings
+2. Daily Report Example
