@@ -424,7 +424,7 @@ function botalert_dropdown_capabilities($select_name, $checked_value="") {
    <tr valign="top">
 		<th scope="row">BotAlert/BotBlock CustID and AuthToken</th>
 		<td>
-			BotAlert/BotBlock requires a CustID and an AuthToken. You can sign up for a <a href="http://pramana.com/" target="0">BotAlert/BotBlock account</a> .
+                        BotAlert/BotBlock requires a CustID and an AuthToken. You can get these by creating an account at <a href="https://pramana.com/account/register" target="_blank">pramana.com/account/register</a>, then add your domain and click on &ldquo;Service URLs&rdquo; link for your domain on the My Account page.
 			<br />
 			<p class="re-keys">
 				<!-- BotAlert custid -->
@@ -460,10 +460,10 @@ function botalert_dropdown_capabilities($select_name, $checked_value="") {
             <!-- Error Messages -->
             <p class="re-keys">
       			<!-- Incorrect -->
-      			<label style="font-weight: bold;" for="botalert_isbot">Score indicates Bot:</label>
-      			<input name="botalert_isbot" id="botalert_isbot" size="80" value="<?php echo $optionarray_def['botalert_isbot']; ?>" />
+      			<label style="font-weight: bold;" for="botalert_isbot">Score indicates Bot:</label><br>
+      			<input name="botalert_isbot" id="botalert_isbot" size="80" value="<?php echo $optionarray_def['botalert_isbot']; ?>" /><br><br>
 	               <!-- Blank -->
-      			<label style="font-weight: bold;" for="botalert_error">BotBlock timeout or missing POST parameter (hpmxRequestId):</label>
+      			<label style="font-weight: bold;" for="botalert_error">BotBlock timeout or missing POST parameter (hpmxRequestId):</label><br>
       			<input name="botalert_error" id="botalert_error" size="80" value="<?php echo $optionarray_def['botalert_error']; ?>" />
       			<br />
       		</p>
