@@ -10,7 +10,6 @@ function botblock_VERDict($custid, $authtoken, $hpmxRequestId, $neutral_is_accep
             $hpmxResult = _botalert_get_http( $url, false );
         else
             $hpmxResult = file_get_contents( $url );
-error_log("hpmxResult=$hpmxResult");
         # http://pramana.com/resources/validation-results/
         if( $hpmxResult == -1 || $hpmxResult == -3 ) // -1 = Bot, -3 = Backdoor
                 return false;
