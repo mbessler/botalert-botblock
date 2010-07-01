@@ -4,7 +4,7 @@ Donate link: http://www.pramana.com
 Tags: comments, registration, botalert, botblock, antispam, mailhide, captcha, wpmu
 Requires at least: 2.1
 Tested up to: 3.0.0
-Stable tag: 0.9
+Stable tag: 1.0.0
 
 Integrates BotAlert/BotBlock anti-spam methods with WordPress including comment, registration, and email spam protection. WPMU Compatible.
 
@@ -12,7 +12,7 @@ Integrates BotAlert/BotBlock anti-spam methods with WordPress including comment,
 
 = What is BotAlert/BotBlock =
 
-[BotAlert/BotBlock](http://pramana.com/ "BotAlert/BotBlock") is an invisible CAPTCHA replacement solution by Pramana Inc.
+[BotAlert/BotBlock](http://pramana.com/ "BotAlert/BotBlock") is an invisible CAPTCHA replacement/alternative solution by Pramana Inc.
 
 This plugin is [WordPress MU](http://mu.wordpress.org/) compatible.
 
@@ -22,22 +22,10 @@ For more information please view the [plugin page](http://code.google.com/p/bota
 
 To install in regular WordPress:
 
-1. Upload the `wp-botalert` folder to the `/wp-content/plugins/` directory
+1. Make sure you have cURL and php-cURL installed
+1. Upload the `botalertbotblock` folder to the `/wp-content/plugins/` directory
 1. Activate the plugin through the `Plugins` menu in WordPress
-1. Get your BotAlert/BotBlock keys (aka. CustID and AuthToken) [here](http://pramana.com/account "Sign up for a BotAlert/BotBlock account").
-1. Select whether you want to use auto-wiring for forms, or to manually add 'onclick=' handlers to trigger validation at form submission:
-   1. With auto-wiring you don't need to modify any themes or any other files, just select "Enable Form Autowiring" in the configuration.
-   1. Without auto-wiring, connect the Submit buttons to the `triggerPramana()` handler in your theme(s):
-
-      for the default theme:
-
-       * for new user registration in `wp-login.php`, add `<?php global $botalert_opt; echo ($botalert_opt['ba_registration'])? 'onclick="triggerPramana(this.form,this.form.user_email.value);"':'' ?>` to the `<input type="submit ...>` button like this:
-
-            `<p class="submit"><input type="submit" name="wp-submit" id="wp-submit" class="button-primary" value="<?php esc_attr_e('Register'); ?>" <?php global $botalert_opt; echo ($botalert_opt['ba_registration'])? 'onclick="triggerPramana(this.form,this.form.user_email.value);"':'' ?>  tabindex="100" /></p>`
-
-       * for comment posting in `wp-content/themes/default/comments.php`, add `<?php global $botalert_opt; echo ($botalert_opt['ba_comments']==1)? 'onclick="triggerPramana(this.form,this.form.email.value);"':'' ?>` like this:
-
-             <input name="submit" type="submit" id="submit" tabindex="5" <?php global $botalert_opt; echo ($botalert_opt['ba_comments']==1)? 'onclick="triggerPramana(this.form,this.form.email.value);"':'' ?> value="Submit Comment" />
+1. Get your BotAlert/BotBlock keys (aka. CustID and AuthToken) by creating an account at [pramana.com/account/register](https://pramana.com/account/register "Sign up for a BotAlert/BotBlock account"), then add your domain and click on &ldquo;Service URLs&rdquo; link for your domain on the My Account page.
 
 To install in WordPress MU (Optional Activation by Users):
 
@@ -45,32 +33,48 @@ To install in WordPress MU (Optional Activation by Users):
 
 To install in WordPress MU (Forced Activation/Site-Wide):
 
-1. Upload the `wp-botalert` folder to the `/wp-content/mu-plugins` directory
-1. **Move** the `wp-botalert.php` file out of the `wp-botalert` folder so that it is in `/wp-content/mu-plugins`
-1. Now you should have `/wp-content/mu-plugins/wp-botalert.php` and `/wp-content/mu-plugins/wp-botalert/`
+1. Upload the `botalertbotblock` folder to the `/wp-content/mu-plugins` directory
+1. **Move** the `wp-botalert.php` file out of the `botalertbotblock` folder so that it is in `/wp-content/mu-plugins`
+1. Now you should have `/wp-content/mu-plugins/wp-botalert.php` and `/wp-content/mu-plugins/botalertbotblock/`
 1. Go to the administrator menu and then go to **Site Admin > BotAlert/BotBlock**
-1. Get your BotAlert/BotBlock keys (aka. CustID and AuthToken) [here](http://pramana.com/account "Sign up for a BotAlert/BotBlock account").
+1. Get your BotAlert/BotBlock keys (aka. CustID and AuthToken) by creating an account at [pramana.com/account/register](https://www.pramana.com/account/register "Sign up for a BotAlert/BotBlock account"), then add your domain and click on &ldquo;Service URLs&rdquo; link for your domain on the My Account page.
 
 == Upgrade Notice ==
-no upgrades yet
+
+From 1.0.0 on, you will need to have cURL and php-cURL installed. 
+Also, since version 1.0.0 there is no more manual or autowiring needed. Its now all done from within the plugin. This gets rid of the Javascript issues sometimes associated with both auto- and manual-wiring because now the validations are triggered from the plugin and not from the user's browser anymore. 
 
 == Requirements ==
 
 * You need BotAlert/BotBlock keys (aka. CustID and AuthToken) [here](http://pramana.com/account "Sign up for a BotAlert/BotBlock account").
-* Your theme must have a `do_action('comment_form', $post->ID);` call right before the end of your form (*Right before the closing form tag*). Most themes do.
+* cURL and php-cURL must be installed on your server. On some platforms, php comes with cURL compiled in already. To test, you can use this PHP snippet:
+    `<?php
+       if(function_exists("curl_init")) { echo "curl present"; } 
+       else { echo "curl NOT installed"; }
+     ?>`
+
 
 == ChangeLog ==
 
+= Version 1.0.0 =
+* changed data flow to go through plugin: BotAlert/BotBlock Javascript passes through plugin when loaded and results are submitted through plugin for validation. Before, both were done through the client's browser directly and thus not always reliable.
+= Version 0.9.6 =
+* first version on wordpress.org
+* cleaned up
+* added auto-wiring
 = Version 0.9.5 =
-* first version
+* first public version
 
 
 == Frequently Asked Questions ==
 
 = What is the difference between BotAlert and BotBlock? =
 
-BotAlert is a free service, however it does not provide real-time results. As such, it cannot prevent abuse, but it lets you measure the amount of abuse by automated processes (aka. bots). 
+BotBlock provides real-time results, so it can be used as a CAPTCHA replacement. BotAlert on the other side does not give you real-time results but allows you to measure the amount of Bot (automated process) traffic on your site.
+
 BotBlock, on the other hand, provides real-time results and thus allow you to prevent spam and abuse when it happens.
+
+Both services will provide you with daily reports via email.
 
 == Screenshots ==
 

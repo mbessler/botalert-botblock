@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: WP-BotAlert
+Plugin Name: BotAlertBotBlock
 Plugin URI: http://code.google.com/p/botalert-botblock
 Description: Integrates BotAlert/BotBlock anti-spam solutions with wordpress
-Version: 0.9.5
+Version: 1.0.0
 Author: Pramana Inc.
 Email: websupport@pramana.com
 Author URI: http://www.pramana.com
@@ -65,10 +65,7 @@ function embed_botalert($errors) {
 	else {
             echo ($_GET['rerror']? '<p class="error">RERROR3' . $_GET['rerror'] . '</p>': '');
         }
-        if ($botalert_opt['ba_use_autowire'])
-	    echo botalert_AUTHenticateAUTOWIRE($botalert_opt['custid'], $botalert_opt['authtoken'], 'registerform', 'wp-submit', 'user_login');
-        else
-	    echo botalert_AUTHenticate($botalert_opt['custid'], $botalert_opt['authtoken']);
+        echo botalert_ACODE($botalert_opt['custid'], $botalert_opt['authtoken']);
     }
 }
 
@@ -86,7 +83,7 @@ function check_botalert_score() {
 		$errors['blank_captcha'] = $botalert_opt['botalert_error'];
    
    else {
-	$botalert_result = botalert_VERD();
+	$botalert_result = botalert_VALI($_POST['user_login']);
 	if ( ! $botalert_result )
 		$errors['captcha_wrong'] = $botalert_opt['botalert_isbot'];
    }
@@ -101,7 +98,7 @@ function check_botalert_score_new($errors) {
 		return $errors;
    }
    
-	$botalert_result = botalert_VERD();
+	$botalert_result = botalert_VALI($_POST['user_login']);
 	if (! $botalert_result )
 		$errors->add('captcha_wrong', $botalert_opt['botalert_isbot']);
    
@@ -126,7 +123,7 @@ function check_botalert_score_wpmu($result) {
       	return $result;
       }
 
-	$botalert_result = botalert_VERD();
+	$botalert_result = botalert_VALI($_POST['user_login']);
 	if ( ! $botalert_result ) {
       		$result['errors']->add('captcha_wrong', $botalert_opt['botalert_isbot']);
             echo "<div class=\"error\">". $botalert_opt['botalert_isbot'] . "</div>";
@@ -163,7 +160,6 @@ $option_defaults = array (
    'treat_neutral_as_bad' => '0', // whether to treat a neutral score as Bot or Human
    'ba_comments' => '1', // whether or not to use BotAlert/BotBlock on the comment post
    'ba_registration' => '1', // whether or not to use BotAlert/BotBlock on the registration page
-   'ba_use_autowire' => '1', //  whether or not to use auto-wiring of the submit button for BotAlert/BotBlock protected pages
    'botalert_error' => '<strong>ERROR</strong>: Please try again.', // timeout/hpmx error (eg. hpmxRequestId missing)
    'botalert_isbot' => '<strong>ERROR</strong>: Your behavior looks suspicious. If you are a human, please try again.', // the message to display when the user is classified as Bot by BotBlock
 );
@@ -221,10 +217,8 @@ function botalert_comment_form() {
 			<input name="submit" type="submit" id="submit-alt" tabindex="6" value="Submit Comment"/> 
 		</noscript>
 COMMENT_FORM;
-        if ($botalert_opt['ba_use_autowire'])
-	    $ba_snippet = botalert_AUTHenticateAUTOWIRE($botalert_opt['custid'], $botalert_opt['authtoken'], 'commentform', 'submit', 'email');
-        else
-	    $ba_snippet = botalert_AUTHenticate($botalert_opt['custid'], $botalert_opt['authtoken']);
+
+        $ba_snippet = botalert_ACODE($botalert_opt['custid'], $botalert_opt['authtoken']);
 	echo $ba_snippet . $comment_string;
 }
 
@@ -253,7 +247,7 @@ function botalert_wp_check_comment($comment_data) {
 	if (botalert_wp_get_for_comment()) {
 		if ( $comment_data['comment_type'] == '' ) { // Do not check trackbacks/pingbacks
 
-			$botalert_result = botalert_VERD();
+			$botalert_result = botalert_VALI($_POST['email']);
 			if ($botalert_result)
 				return $comment_data;
 			else {
@@ -266,10 +260,11 @@ function botalert_wp_check_comment($comment_data) {
 	return $comment_data;
 }
 
-function botalert_VERD() {
+function botalert_VALI($refid) {
 	global $botalert_opt;
-	return botblock_VERDict($botalert_opt['custid'], $botalert_opt['authtoken'], $_POST['hpmxRequestId'], $botalert_opt['treat_neutral_as_bad']);
+        return botalert_VALIandVERD($botalert_opt['custid'], $botalert_opt['authtoken'], $_POST['hpmxRequestId'], $refid, $botalert_opt['have_botblock'], ! $botalert_opt['treat_neutral_as_bad']);
 }
+
 
 /*
  * If the BotBlock score indicated Bot from botalert_wp_check_comment, then redirect back to the comment form 
@@ -346,7 +341,6 @@ function botalert_wp_options_subpanel() {
 		'treat_neutral_as_bad' => '',
 		'ba_comments' => '1',
 		'ba_registration' => '1',
-                'ba_use_autowire' => '1',
       'botalert_error' => '<strong>ERROR</strong>: Please try again.',
       'botalert_isbot' => '<strong>ERROR</strong>: Your behavior looks suspicious. If you are a human, please try again.',
 		);
@@ -363,7 +357,6 @@ function botalert_wp_options_subpanel() {
 		'treat_neutral_as_bad' => $_POST['treat_neutral_as_bad'],
 		'ba_comments' => $_POST['ba_comments'],
 		'ba_registration' => $_POST['ba_registration'],
-                'ba_use_autowire' => $_POST['ba_use_autowire'],
       'botalert_error' => $_POST['botalert_error'],
       'botalert_isbot' => $_POST['botalert_isbot'],
 		);
@@ -445,14 +438,6 @@ function botalert_dropdown_capabilities($select_name, $checked_value="") {
 	    </td>
     </tr>
   	<tr valign="top">
-		<th scope="row">Autowiring Options</th>
-		<td>
-			<!-- Whether or not to auto-wire the forms to trigger the BotAlert/BotBlock validation -->
-			<big><input type="checkbox" name="ba_use_autowire" id="ba_use_autowire" value="1" <?php if($optionarray_def['ba_use_autowire'] == true){echo 'checked="checked"';} ?> /> <label for="ba_use_autowire">Enable Form Autowiring. If enabled, pages where BotAlert/BotBlock is enabled will auto-wire the form and submit element automatically (using Javascript) to trigger the Pramana Botalert/BotBlock validation on form submission.</label></big>
-			<br />
-		</td>
-	</tr>
-  	<tr valign="top">
 		<th scope="row">Comment Options</th>
 		<td>
 			<!-- Use BotAlert/BotBlock on the comment post -->
@@ -492,13 +477,13 @@ function botalert_dropdown_capabilities($select_name, $checked_value="") {
 				<div style="vertical-align: middle !important;">
 					<label for="have_botblock">BotAlert or BotBlock:</label>
 					<select name="have_botblock" id="have_botblock">
+						<option value="1" <?php if($optionarray_def['have_botblock'] == '1'){echo 'selected="selected"';} ?>>BotBlock (real-time results) (recommended)</option>
 						<option value="0" <?php if($optionarray_def['have_botblock'] == '0'){echo 'selected="selected"';} ?>>BotAlert</option>
-						<option value="1" <?php if($optionarray_def['have_botblock'] == '1'){echo 'selected="selected"';} ?>>BotBlock (real-time results)</option>
 					</select>
 			    	</div>
 				<br />
 		    	<!-- Whether or not to be XHTML 1.0 Strict compliant -->
-				<input type="checkbox" name="treat_neutral_as_bad" id="treat_neutral_as_bad" value="1" <?php if($optionarray_def['treat_neutral_as_bad'] == true){echo 'checked="checked"';} ?> /> <label for="treat_neutral_as_bad">Treat neutral scores as Bot?<strong>Note</strong>: If checked, then any neutral score will be treated as a Bot. (Makes the scoring more strict)</label>
+				<input type="checkbox" name="treat_neutral_as_bad" id="treat_neutral_as_bad" value="1" <?php if($optionarray_def['treat_neutral_as_bad'] == true){echo 'checked="checked"';} ?> /> <label for="treat_neutral_as_bad">Treat neutral scores as Bot?<strong><BR>Note</strong>: If checked, then any neutral score will be treated as a Bot. (Makes the scoring more strict)</label>
 				<br />
 			</td>
 		</tr>
@@ -547,6 +532,33 @@ if ( !($botalert_opt ['custid'] && $botalert_opt['authtoken'] ) && !isset($_POST
    
    return;
 }
+
+// If no curl support found
+if( !function_exists("curl_init") ) {
+   function botalert_warning() {
+		global $wpmu;
+		
+		$path = plugin_basename(__FILE__);
+		$top = 0;
+		if ($wp_version <= 2.5)
+		$top = 12.7;
+		else
+		$top = 7;
+		echo "
+		<div id='botalert-warning' class='updated fade-ff0000'><p><strong>BotAlert/BotBlock is not active</strong> You must install <A HREF='http://php.net/manual/en/book.curl.php'>php-cURL</A> for it to work</p></div>
+		<style type='text/css'>
+		#adminmenu { margin-bottom: 5em; }
+		#botalert-warning { position: absolute; top: {$top}em; }
+		</style>
+		";
+   }
+   
+   if (($wpmu == 1 && is_site_admin()) || $wpmu != 1)
+		add_action('admin_footer', 'botalert_warning');
+   
+   return;
+}
+
 
 
 
