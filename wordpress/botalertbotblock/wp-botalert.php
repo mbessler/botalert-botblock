@@ -262,7 +262,7 @@ function botalert_wp_check_comment($comment_data) {
 
 function botalert_VALI($refid) {
 	global $botalert_opt;
-        return botalert_VALIandVERD($botalert_opt['custid'], $botalert_opt['authtoken'], $_POST['hpmxRequestId'], $refid, $botalert_opt['have_botblock'], ! $botalert_opt['treat_neutral_as_bad']);
+        return botalert_VALIdate($botalert_opt['custid'], $botalert_opt['authtoken'], $_POST['hpmxRequestId'], $refid, $botalert_opt['have_botblock'], ! $botalert_opt['treat_neutral_as_bad']);
 }
 
 
