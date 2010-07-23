@@ -64,7 +64,7 @@ function botalert_ACODE($custid, $authtoken)
 	return $botalert_snippet;
 }
 
-function botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid)
+function botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable=true)
 {
         global $ba_api, $ba_api_ver;
         $url = "http://" . $custid . ".botalert.com/VALI?custid=" . $custid . "&auth=" . $authtoken;
@@ -72,8 +72,10 @@ function botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid)
         $url .= "&api=" . $ba_api . "-" . $ba_api_ver;
         $url .= "&id=" . $hpmxRequestId;
         $url .= "&ref_id_1=" . urlencode($refid);
-        $url .= "&" . $_POST["hpmxData"];
+        $url .= "&" . (isset($_POST["hpmxData"]) && $_POST["hpmxData"] != "") ? $_POST["hpmxData"] : "_data=direct";
         $hpmxResult = _botalert_get_http( $url );
+        if( ! $have_botblock )
+            return true;
         # http://pramana.com/resources/validation-results/
         if( $hpmxResult == -1 || $hpmxResult == -3 ) // -1 = Bot, -3 = Backdoor
                 return false;
@@ -98,7 +100,7 @@ function botalert_VALInoscript($custid, $authtoken)
 
 function botalert_VALIandVERD($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable=true)
 {
-        botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid);
+        botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable);
         if( ! $have_botblock )
             return true;
         return botblock_VERDict($custid, $authtoken, $hpmxRequestId, $neutral_is_acceptable);
