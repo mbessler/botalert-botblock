@@ -2,8 +2,8 @@
 /*
 Plugin Name: BotAlertBotBlock
 Plugin URI: http://code.google.com/p/botalert-botblock
-Description: Integrates BotAlert/BotBlock anti-spam solutions with wordpress
-Version: 1.0.0
+Description: Integrates BotAlert/BotBlock anti-spam solutions with WordPress. BotAlert/BotBlock is an invisible CAPTCHA replacement/alternative. <a href="options-general.php?page=botalertbotblock/wp-botalert.php">Settings</a>
+Version: 1.0.1
 Author: Pramana Inc.
 Email: websupport@pramana.com
 Author URI: http://www.pramana.com
@@ -31,7 +31,7 @@ else
 // END WORDPRESS MU DETECTION
 
 if ($wpmu == 1)
-   require_once(dirname(__FILE__) . '/wp-botalert/php-common/botalertlib.php');
+   require_once(dirname(__FILE__) . '/botalertbotblock/php-common/botalertlib.php');
 else
    require_once(dirname(__FILE__) . '/php-common/botalertlib.php');
 
@@ -422,6 +422,12 @@ function botalert_dropdown_capabilities($select_name, $checked_value="") {
 	<!-- ****************** Operands ****************** -->
    <table class="form-table">
    <tr valign="top">
+		<th scope="row">BotAlert/BotBlock Support Test</th>
+		<td>
+                    <a href="<?php echo WP_PLUGIN_URL . "/botalertbotblock/test-requirements.php"; ?>" target="_new">Test if your PHP installation will support BotAlert/BotBlock</a>
+	        </td>
+   </tr>
+   <tr valign="top">
 		<th scope="row">BotAlert/BotBlock CustID and AuthToken</th>
 		<td>
                         BotAlert/BotBlock requires a CustID and an AuthToken. You can get these by creating an account at <a href="https://pramana.com/account/register" target="_blank">pramana.com/account/register</a>, then add your domain and click on &ldquo;Service URLs&rdquo; link for your domain on the My Account page.
@@ -507,10 +513,19 @@ function botalert_dropdown_capabilities($select_name, $checked_value="") {
 
 add_action('admin_menu', 'botalert_wp_add_options_to_admin');
 
-// If no BotAlert/BotBlock custid and authtoken were entered
-if ( !($botalert_opt ['custid'] && $botalert_opt['authtoken'] ) && !isset($_POST['submit']) ) {
-   function botalert_warning() {
-		global $wpmu;
+$ba_warnings=array();
+
+if( !function_exists("curl_init") ) array_push($ba_warnings, 'curl');
+
+if( !isset($_POST['submit']) && (!isset($botalert_opt['custid']) || strlen($botalert_opt['custid']) != 12) )  array_push($ba_warnings, 'custid');
+if( !isset($_POST['submit']) && (!isset($botalert_opt['authtoken']) || strlen($botalert_opt['authtoken']) != 36) ) array_push($ba_warnings, 'authtoken');
+
+if( isset($_POST['submit']) && (!isset($_POST['botalert_opt_custid']) || strlen($_POST['botalert_opt_custid']) != 12) ) array_push($ba_warnings, 'custid2');
+if( isset($_POST['submit']) && (!isset($_POST['botalert_opt_authtoken']) || strlen($_POST['botalert_opt_authtoken']) != 36) ) array_push($ba_warnings, 'authtoken2');
+
+if( count($ba_warnings) > 0 ) {
+   function botalert_settings_warning() {
+		global $ba_warnings;
 		
 		$path = plugin_basename(__FILE__);
 		$top = 0;
@@ -518,47 +533,28 @@ if ( !($botalert_opt ['custid'] && $botalert_opt['authtoken'] ) && !isset($_POST
 		$top = 12.7;
 		else
 		$top = 7;
+                if( in_array('curl', $ba_warnings)) 
+		    echo "<div id='botalert-warning' class='error fade-ff0000'><p><strong>BotAlert/BotBlock is not active</strong> You must install <A HREF='http://php.net/manual/en/book.curl.php'>php-cURL</A> for it to work</p></div>";
+                if( in_array('custid', $ba_warnings)) 
+		    echo "<div id='botalert-warning' class='updated fade-ff0000'><p><strong>BotAlert/BotBlock is not active</strong> Your BotAlert/BotBlock CustID is emtpy or invalid. Check the <a href='options-general.php?page=" . $path . "'>Plugin Settings</a></p></div>";
+                if( in_array('authtoken', $ba_warnings)) 
+		    echo "<div id='botalert-warning' class='updated fade-ff0000'><p><strong>BotAlert/BotBlock is not active</strong> Your BotAlert/BotBlock AuthToken is emtpy or invalid. Check the <a href='options-general.php?page=" . $path . "'>Plugin Settings</a></p></div>";
+
+                if( in_array('custid2', $ba_warnings)) 
+		    echo "<div id='botalert-warning' class='error fade-ff0000'><p><strong>BotAlert/BotBlock is not active</strong> Your BotAlert/BotBlock CustID is emtpy or invalid.</p></div>";
+                if( in_array('authtoken2', $ba_warnings)) 
+		    echo "<div id='botalert-warning' class='error fade-ff0000'><p><strong>BotAlert/BotBlock is not active</strong> Your BotAlert/BotBlock AuthToken is emtpy or invalid.</p></div>";
 		echo "
-		<div id='botalert-warning' class='updated fade-ff0000'><p><strong>BotAlert/BotBlock is not active</strong> You must <a href='options-general.php?page=" . $path . "'>enter your BotAlert/BotBlock CustID and AuthToken</a> for it to work</p></div>
 		<style type='text/css'>
 		#adminmenu { margin-bottom: 5em; }
-		#botalert-warning { position: absolute; top: {$top}em; }
 		</style>
 		";
    }
    
    if (($wpmu == 1 && is_site_admin()) || $wpmu != 1)
-		add_action('admin_footer', 'botalert_warning');
-   
-   return;
+		add_action('admin_footer', 'botalert_settings_warning');
+   return; 
 }
-
-// If no curl support found
-if( !function_exists("curl_init") ) {
-   function botalert_warning() {
-		global $wpmu;
-		
-		$path = plugin_basename(__FILE__);
-		$top = 0;
-		if ($wp_version <= 2.5)
-		$top = 12.7;
-		else
-		$top = 7;
-		echo "
-		<div id='botalert-warning' class='updated fade-ff0000'><p><strong>BotAlert/BotBlock is not active</strong> You must install <A HREF='http://php.net/manual/en/book.curl.php'>php-cURL</A> for it to work</p></div>
-		<style type='text/css'>
-		#adminmenu { margin-bottom: 5em; }
-		#botalert-warning { position: absolute; top: {$top}em; }
-		</style>
-		";
-   }
-   
-   if (($wpmu == 1 && is_site_admin()) || $wpmu != 1)
-		add_action('admin_footer', 'botalert_warning');
-   
-   return;
-}
-
 
 
 

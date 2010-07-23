@@ -4,7 +4,7 @@ Donate link: http://www.pramana.com
 Tags: comments, registration, botalert, botblock, antispam, mailhide, captcha, wpmu
 Requires at least: 2.1
 Tested up to: 3.0.0
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 
 Integrates BotAlert/BotBlock anti-spam methods with WordPress including comment, registration, and email spam protection. WPMU Compatible.
 
@@ -53,10 +53,15 @@ Also, since version 1.0.0 there is no more manual or autowiring needed. Its now 
        if(function_exists("curl_init")) { echo "curl present"; } 
        else { echo "curl NOT installed"; }
      ?>`
+   Or just go to the BotAlert/BotBlock Options page under Settings and run the BotAlert/BotBlock Support Test.
 
 
 == ChangeLog ==
 
+= Version 1.0.1 =
+* dropped one round-trip to BotAlert/BotBlock servers, thus making the plugin a bit faster.
+* added support for non-javascript browsers
+* several configuration improvements, incl. a requirements test for cURL
 = Version 1.0.0 =
 * changed data flow to go through plugin: BotAlert/BotBlock Javascript passes through plugin when loaded and results are submitted through plugin for validation. Before, both were done through the client's browser directly and thus not always reliable.
 = Version 0.9.6 =
