@@ -72,7 +72,10 @@ function botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid, $have_bo
         $url .= "&api=" . $ba_api . "-" . $ba_api_ver;
         $url .= "&id=" . $hpmxRequestId;
         $url .= "&ref_id_1=" . urlencode($refid);
-        $url .= "&" . (isset($_POST["hpmxData"]) && $_POST["hpmxData"] != "") ? $_POST["hpmxData"] : "_data=direct";
+        if( isset($_POST["hpmxData"]) && strlen($_POST["hpmxData"]) > 0 )
+            $url .= "&" . $_POST["hpmxData"];
+        else
+            $url .= "&_data=direct";
         $hpmxResult = _botalert_get_http( $url );
         if( ! $have_botblock )
             return true;
