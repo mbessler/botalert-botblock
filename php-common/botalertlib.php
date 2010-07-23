@@ -1,11 +1,11 @@
 <?php
 global $ba_api, $ba_api_ver;
 $ba_api="baphp";
-$ba_api_ver="1.0";
+$ba_api_ver="1.1";
 
 function botblock_VERDict($custid, $authtoken, $hpmxRequestId, $neutral_is_acceptable=true)
 {
-        $url = "http://" . $custid . ".botalert.com/VERD?custid=" . $custid . "&auth=" . $authtoken . "&reqid=" . $hpmxRequestId; 
+        $url = "http://" . $custid . ".botalert.com/VERD?custid=" . $custid . "&auth=" . $authtoken . "&id=" . $hpmxRequestId; 
         if(function_exists("curl_init"))
             $hpmxResult = _botalert_get_http( $url, false );
         else
@@ -54,24 +54,46 @@ function botalert_ACODE($custid, $authtoken)
 	$url = "http://" . $custid . ".botalert.com/ACOD?custid=" . $custid . "&auth=" . $authtoken;
         $url .= "&ip=" . $_SERVER['REMOTE_ADDR'];
         $url .= "&api=" . $ba_api . "-" . $ba_api_ver;
-        $url .= "&override=vali_triggers:001,tran_mech:4";
-        $botalert_snippet = '<script type="text/javascript">';
+        $url .= "&override=vali_triggers:001,tran_mech:4,script:1";
+        $botalert_snippet = '';
+        //$botalert_snippet .= '<script type="text/javascript">';
 	$botalert_snippet .= _botalert_get_http( $url );
-        $botalert_snippet .= '</script>';
+        //$botalert_snippet .= '</script>';
+        //replace ##PHAJ2BAF## with noscript proxy page
+        $botalert_snippet = str_replace('##PHAJ2BAF##','/wp-content/plugins/botalertbotblock/noscript.php',$botalert_snippet);
 	return $botalert_snippet;
 }
 
 function botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid)
 {
         global $ba_api, $ba_api_ver;
-        $url = "http://" . $custid . ".botalert.com/VALI?custid=" . $custid;
+        $url = "http://" . $custid . ".botalert.com/VALI?custid=" . $custid . "&auth=" . $authtoken;
         $url .= "&ip=" . $_SERVER['REMOTE_ADDR'];
         $url .= "&api=" . $ba_api . "-" . $ba_api_ver;
-        $url .= "&reqid=" . $hpmxRequestId;
+        $url .= "&id=" . $hpmxRequestId;
         $url .= "&ref_id_1=" . urlencode($refid);
         $url .= "&" . $_POST["hpmxData"];
         $hpmxResult = _botalert_get_http( $url );
+        # http://pramana.com/resources/validation-results/
+        if( $hpmxResult == -1 || $hpmxResult == -3 ) // -1 = Bot, -3 = Backdoor
+                return false;
+        if( $hpmxResult == 0 && ! $neutral_is_acceptable ) // 0 = Neutral
+                return false; // Neutral, but not acceptable
         return true; // 1 = Human, others are errors, but we let them through, so we can fail-open.
+}
+
+function botalert_VALInoscript($custid, $authtoken)
+{
+        global $ba_api, $ba_api_ver;
+        $url = "http://" . $custid . ".botalert.com/VALI?custid=" . $custid . "&auth=" . $authtoken;
+        $url .= "&ip=" . $_SERVER['REMOTE_ADDR'];
+        $url .= "&api=" . $ba_api . "-" . $ba_api_ver;
+        $url .= "&id=" . (isset($_REQUEST['id']) ? $_REQUEST['id'] : '');
+        $url .= "&ns=" . (isset($_REQUEST['ns']) ? $_REQUEST['ns'] : '1');
+        if( isset($_REQUEST['if']) ) $url .= "&if=".$_REQUEST['if'];
+        if( isset($_REQUEST['i']) ) $url .= "&i=".$_REQUEST['i'];
+        $hpmxResult = _botalert_get_http( $url );
+        return true;
 }
 
 function botalert_VALIandVERD($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable=true)
@@ -87,7 +109,8 @@ function _botalert_get_http($url, $append_headers=true)
     if(!function_exists("curl_init"))
     {
         error_log("CURL not AVAILABLE. Please install PHP-cURL");
-        return "var botalert_error='curl not availble. please install';";
+        //return "var botalert_error='curl not availble. please install';";
+        return "";
     }
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
@@ -126,6 +149,13 @@ function _botalert_get_headers()
         if( ! in_array(strtolower($k),$no_include) ) 
             array_push($headers, $k . ': ' . $v);
     }
+    $use_ssl=false;
+    if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") $use_ssl = true;
+    $port = (isset($_SERVER["SERVER_PORT"]) && ((!$isHTTPS && $_SERVER["SERVER_PORT"] != "80") || ($isHTTPS && $_SERVER["SERVER_PORT"] != "443")));
+    $port = ($port) ? ':'.$_SERVER["SERVER_PORT"] : '';
+    $xurl = "http" . ($use_ssl ? 's' : '') ."://" . $_SERVER["SERVER_NAME"] . $port . $_SERVER["REQUEST_URI"];
+    if(strpos($xurl, "?") !== FALSE) $xurl=substr($xurl,0,strpos($xurl, "?"));
+    array_push($headers, "x-pr-pageuri: $xurl");
     return $headers;
 }
 
