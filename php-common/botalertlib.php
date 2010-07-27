@@ -1,7 +1,8 @@
 <?php
-global $ba_api, $ba_api_ver;
+global $ba_api, $ba_api_ver, $ba_api_err;
 $ba_api="baphp";
 $ba_api_ver="1.1";
+$ba_api_err="-100";
 
 function botblock_VERDict($custid, $authtoken, $hpmxRequestId, $neutral_is_acceptable=true, $ba_noscript_action='1')
 {
@@ -16,13 +17,14 @@ function botblock_VERDict($custid, $authtoken, $hpmxRequestId, $neutral_is_accep
                 return false;
         if( $hpmxResult == 0 && ! $neutral_is_acceptable ) // 0 = Neutral
                 return false; // Neutral, but not acceptable
-        if( $hpmxResult == -4 && $ba_noscript_action == 1 )
+        if( $hpmxResult == -4 && $ba_noscript_action == '1' )
                 return false; // reject noscript user, when $ba_noscript_action is on
         return true; // 1 = Human, others are errors, but we let them through, so we can fail-open.
 }
 
 function botalert_AUTHenticateAUTOWIRE($custid, $authtoken, $frm, $submit, $fld)
 {
+	global $ba_api_err;
         $use_ssl = false;
         if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on")
                 $use_ssl = true;
@@ -33,11 +35,13 @@ function botalert_AUTHenticateAUTOWIRE($custid, $authtoken, $frm, $submit, $fld)
             $botalert_snippet = _botalert_get_http( $url, false );
         else
             $botalert_snippet = file_get_contents( $url );
+        if($botalert_snippet == $ba_api_err) $botalert_snippet = "";
         return $botalert_snippet;
 }
 
 function botalert_AUTHenticate($custid, $authtoken)
 {
+	global $ba_api_err;
 	$use_ssl = false;
 	if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on")
 		$use_ssl = true;
@@ -47,12 +51,13 @@ function botalert_AUTHenticate($custid, $authtoken)
             $botalert_snippet = _botalert_get_http( $url, false );
         else
             $botalert_snippet = file_get_contents( $url );
+        if($botalert_snippet == $ba_api_err) $botalert_snippet = "";
 	return $botalert_snippet;
 }
 
 function botalert_ACODE($custid, $authtoken)
 {
-        global $ba_api, $ba_api_ver;
+        global $ba_api, $ba_api_ver, $ba_api_err;
 	$use_ssl = false;
 	$url = "http://" . $custid . ".botalert.com/ACOD?custid=" . $custid . "&auth=" . $authtoken;
         $url .= "&ip=" . $_SERVER['REMOTE_ADDR'];
@@ -63,6 +68,7 @@ function botalert_ACODE($custid, $authtoken)
 	$botalert_snippet .= _botalert_get_http( $url );
         //$botalert_snippet .= '</script>';
         //replace ##PHAJ2BAF## with noscript proxy page
+	if($botalert_snippet == $ba_api_err) $botalert_snippet = "";
         $botalert_snippet = str_replace('##PHAJ2BAF##','/wp-content/plugins/botalertbotblock/noscript.php',$botalert_snippet);
 	return $botalert_snippet;
 }
@@ -87,7 +93,7 @@ function botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid, $have_bo
                 return false;
         if( $hpmxResult == 0 && ! $neutral_is_acceptable ) // 0 = Neutral
                 return false; // Neutral, but not acceptable
-        if( $hpmxResult == -4 && $ba_noscript_action == 1 )
+        if( $hpmxResult == -4 && $ba_noscript_action == '1' )
                 return false; // reject noscript user, when $ba_noscript_action is on
         return true; // 1 = Human, others are errors, but we let them through, so we can fail-open.
 }
@@ -116,6 +122,7 @@ function botalert_VALIandVERD($custid, $authtoken, $hpmxRequestId, $refid, $have
 
 function _botalert_get_http($url, $append_headers=true)
 {
+    global $ba_api_err;
     if(!function_exists("curl_init"))
     {
         error_log("CURL not AVAILABLE. Please install PHP-cURL");
@@ -137,7 +144,8 @@ function _botalert_get_http($url, $append_headers=true)
     {
         error_log("cURL failure: " . curl_error($ch));
         curl_close ($ch);
-        return "-2";
+    	ob_end_clean();
+        return $ba_api_err;
     }
     curl_close ($ch);
     $string = ob_get_contents();
