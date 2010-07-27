@@ -22,11 +22,11 @@ For more information please view the [plugin page](http://code.google.com/p/bota
 
 To install in regular WordPress:
 
-1. Make sure you have cURL and php-cURL installed. On some platforms, php comes with cURL compiled in already. 
-    * To test, you can use this PHP snippet:  `<?php if(function_exists("curl_init")) { echo "curl present"; } else { echo "curl NOT installed"; } ?>`
+1. Make sure you have cURL and php-cURL installed. On some platforms, php comes with cURL compiled in already. To test, you can go to the BotAlert/BotBlock Options page under Settings and run the BotAlert/BotBlock Support Test.
 1. Upload the `botalertbotblock` folder to the `/wp-content/plugins/` directory
-1. Activate the plugin through the `Plugins` menu in WordPress
 1. Get your BotAlert/BotBlock keys (aka. CustID and AuthToken) by creating an account at [pramana.com/account/register](https://pramana.com/account/register "Sign up for a BotAlert/BotBlock account"), then add your domain and click on &ldquo;Service URLs&rdquo; link for your domain on the My Account page.
+1. Activate the plugin through the `Plugins` menu in WordPress.
+1. In your wordpress admin interface, go to the BotAlert/BotBlock Options page under Settings, then paste your CustID and AuthToken. Set the other options based on your needs.
 
 To install in WordPress MU (Optional Activation by Users):
 
@@ -37,8 +37,8 @@ To install in WordPress MU (Forced Activation/Site-Wide):
 1. Upload the `botalertbotblock` folder to the `/wp-content/mu-plugins` directory
 1. **Move** the `wp-botalert.php` file out of the `botalertbotblock` folder so that it is in `/wp-content/mu-plugins`
 1. Now you should have `/wp-content/mu-plugins/wp-botalert.php` and `/wp-content/mu-plugins/botalertbotblock/`
-1. Go to the administrator menu and then go to **Site Admin > BotAlert/BotBlock**
 1. Get your BotAlert/BotBlock keys (aka. CustID and AuthToken) by creating an account at [pramana.com/account/register](https://www.pramana.com/account/register "Sign up for a BotAlert/BotBlock account"), then add your domain and click on &ldquo;Service URLs&rdquo; link for your domain on the My Account page.
+1. Go to the administrator menu and then go to **Site Admin > BotAlert/BotBlock**, and paste the CustID and AuthToken. Set the other options based on your needs.
 
 == Upgrade Notice ==
 
@@ -48,19 +48,18 @@ Also, since version 1.0.0 there is no more manual or autowiring needed. Its now 
 == Requirements ==
 
 * You need BotAlert/BotBlock keys (aka. CustID and AuthToken) [here](http://pramana.com/account "Sign up for a BotAlert/BotBlock account").
-* cURL and php-cURL must be installed on your server. On some platforms, php comes with cURL compiled in already. To test, you can use this PHP snippet:
+* cURL and php-cURL must be installed on your server. On some platforms, php comes with cURL compiled in already. To test, you can go to the BotAlert/BotBlock Options page under Settings and run the BotAlert/BotBlock Support Test, or use this PHP snippet:
     `<?php
        if(function_exists("curl_init")) { echo "curl present"; } 
        else { echo "curl NOT installed"; }
      ?>`
-   Or just go to the BotAlert/BotBlock Options page under Settings and run the BotAlert/BotBlock Support Test.
 
 
 == ChangeLog ==
 
 = Version 1.0.1 =
 * dropped one round-trip to BotAlert/BotBlock servers, thus making the plugin a bit faster.
-* added support for non-javascript browsers
+* added support for non-javascript browsers, incl. a new setting
 * several configuration improvements, incl. a requirements test for cURL
 = Version 1.0.0 =
 * changed data flow to go through plugin: BotAlert/BotBlock Javascript passes through plugin when loaded and results are submitted through plugin for validation. Before, both were done through the client's browser directly and thus not always reliable.

@@ -160,6 +160,7 @@ $option_defaults = array (
    'treat_neutral_as_bad' => '0', // whether to treat a neutral score as Bot or Human
    'ba_comments' => '1', // whether or not to use BotAlert/BotBlock on the comment post
    'ba_registration' => '1', // whether or not to use BotAlert/BotBlock on the registration page
+   'ba_noscript_action' => '1',
    'botalert_error' => '<strong>ERROR</strong>: Please try again.', // timeout/hpmx error (eg. hpmxRequestId missing)
    'botalert_isbot' => '<strong>ERROR</strong>: Your behavior looks suspicious. If you are a human, please try again.', // the message to display when the user is classified as Bot by BotBlock
 );
@@ -262,7 +263,7 @@ function botalert_wp_check_comment($comment_data) {
 
 function botalert_VALI($refid) {
 	global $botalert_opt;
-        return botalert_VALIdate($botalert_opt['custid'], $botalert_opt['authtoken'], $_POST['hpmxRequestId'], $refid, $botalert_opt['have_botblock'], ! $botalert_opt['treat_neutral_as_bad']);
+        return botalert_VALIdate($botalert_opt['custid'], $botalert_opt['authtoken'], $_POST['hpmxRequestId'], $refid, $botalert_opt['have_botblock'], ! $botalert_opt['treat_neutral_as_bad'], $botalert_opt['ba_noscript_action']);
 }
 
 
@@ -341,6 +342,7 @@ function botalert_wp_options_subpanel() {
 		'treat_neutral_as_bad' => '',
 		'ba_comments' => '1',
 		'ba_registration' => '1',
+		'ba_noscript_action' => '1',
       'botalert_error' => '<strong>ERROR</strong>: Please try again.',
       'botalert_isbot' => '<strong>ERROR</strong>: Your behavior looks suspicious. If you are a human, please try again.',
 		);
@@ -357,6 +359,7 @@ function botalert_wp_options_subpanel() {
 		'treat_neutral_as_bad' => $_POST['treat_neutral_as_bad'],
 		'ba_comments' => $_POST['ba_comments'],
 		'ba_registration' => $_POST['ba_registration'],
+		'ba_noscript_action' => $_POST['ba_noscript_action'],
       'botalert_error' => $_POST['botalert_error'],
       'botalert_isbot' => $_POST['botalert_isbot'],
 		);
@@ -487,10 +490,21 @@ function botalert_dropdown_capabilities($select_name, $checked_value="") {
 						<option value="0" <?php if($optionarray_def['have_botblock'] == '0'){echo 'selected="selected"';} ?>>BotAlert</option>
 					</select>
 			    	</div>
-				<br />
+<P>				
 		    	<!-- Whether or not to be XHTML 1.0 Strict compliant -->
 				<input type="checkbox" name="treat_neutral_as_bad" id="treat_neutral_as_bad" value="1" <?php if($optionarray_def['treat_neutral_as_bad'] == true){echo 'checked="checked"';} ?> /> <label for="treat_neutral_as_bad">Treat neutral scores as Bot?<strong><BR>Note</strong>: If checked, then any neutral score will be treated as a Bot. (Makes the scoring more strict)</label>
-				<br />
+</P><P>				
+				<!-- select noscript behavior -->
+				<div style="vertical-align: middle !important;">
+					<label for="ba_noscript_action">How to handle clients without Javascript Support&sup1;:</label>
+					<select name="ba_noscript_action" id="ba_noscript_action">
+						<option value="1" <?php if($optionarray_def['ba_noscript_action'] == '1'){echo 'selected="selected"';} ?>>block</option>
+						<option value="0" <?php if($optionarray_def['ba_noscript_action'] == '0'){echo 'selected="selected"';} ?>>allow</option>
+					</select>
+					<BR><strong>&sup1;Note</strong>: those that do interpret the &lt;noscript&gt; tag.
+			    	</div>
+</P>				<br />
+
 			</td>
 		</tr>
 	</table>
@@ -500,6 +514,20 @@ function botalert_dropdown_capabilities($select_name, $checked_value="") {
 	</div>
 
 	</form>
+
+	<h2>Like this plugin?</h2>
+	<p>Please:</p>
+	<ul style="list-style-type: square; margin-left: 20px; padding-left: 5px;">
+		<li>Link to it so other folks can find out about it.</li>
+        	<li><a href="http://wordpress.org/extend/plugins/botalertbotblock/">Give it a good rating</a> on WordPress.org.</li>
+	</ul>
+
+	<h2>Notes:</h2>
+	<p>Please note that this plugin <i>might</i> interfere with certain CAPTCHA implementations. If you have any problems, try disabling your CAPTCHAs.</p>
+
+	<h2>Need support?</h2>
+	<p>If you have any problems with this plugin or ideas for improvements, please let us know through our <a href="http://forums.pramana.com/">Support forums</a></p>
+
    <p style="text-align: center; font-size: .85em;">&copy; Copyright 2010&nbsp;&nbsp;<a href="http://pramana.com">Pramana Inc.</a></p>
 </div> <!-- [wrap] -->
 <!-- ############################## END: ADMIN OPTIONS ##################### -->
