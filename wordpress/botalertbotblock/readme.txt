@@ -42,6 +42,8 @@ To install in WordPress MU (Forced Activation/Site-Wide):
 
 == Upgrade Notice ==
 
+**It is recommended that everyone upgrade to 1.0.1.**
+
 From 1.0.0 on, you will need to have cURL and php-cURL installed. 
 Also, since version 1.0.0 there is no more manual or autowiring needed. Its now all done from within the plugin. This gets rid of the Javascript issues sometimes associated with both auto- and manual-wiring because now the validations are triggered from the plugin and not from the user's browser anymore. 
 
@@ -58,7 +60,7 @@ Also, since version 1.0.0 there is no more manual or autowiring needed. Its now 
 == ChangeLog ==
 
 = Version 1.0.1 =
-* dropped one round-trip to BotAlert/BotBlock servers, thus making the plugin a bit faster.
+* dropped one round-trip to BotAlert/BotBlock servers, thus making the plugin faster.
 * added support for non-javascript browsers, incl. a new setting
 * several configuration improvements, incl. a requirements test for cURL
 = Version 1.0.0 =
@@ -81,7 +83,7 @@ BotBlock, on the other hand, provides real-time results and thus allow you to pr
 
 Both services will provide you with daily reports via email.
 
-= If using BotAlert, the FREE service, how will I know the results, do I get a report? =
+= If using the BotAlert service, how will I know the results, do I get a report? =
 
 Yes, you will receive a daily report at the email you used for creating an account at pramana.com. This is applicable for both BotAlert and BotBlock users.
 
