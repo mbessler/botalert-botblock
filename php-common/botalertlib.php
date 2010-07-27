@@ -3,18 +3,21 @@ global $ba_api, $ba_api_ver;
 $ba_api="baphp";
 $ba_api_ver="1.1";
 
-function botblock_VERDict($custid, $authtoken, $hpmxRequestId, $neutral_is_acceptable=true)
+function botblock_VERDict($custid, $authtoken, $hpmxRequestId, $neutral_is_acceptable=true, $ba_noscript_action='1')
 {
         $url = "http://" . $custid . ".botalert.com/VERD?custid=" . $custid . "&auth=" . $authtoken . "&id=" . $hpmxRequestId; 
         if(function_exists("curl_init"))
             $hpmxResult = _botalert_get_http( $url, false );
         else
             $hpmxResult = file_get_contents( $url );
+
         # http://pramana.com/resources/validation-results/
         if( $hpmxResult == -1 || $hpmxResult == -3 ) // -1 = Bot, -3 = Backdoor
                 return false;
         if( $hpmxResult == 0 && ! $neutral_is_acceptable ) // 0 = Neutral
                 return false; // Neutral, but not acceptable
+        if( $hpmxResult == -4 && $ba_noscript_action == 1 )
+                return false; // reject noscript user, when $ba_noscript_action is on
         return true; // 1 = Human, others are errors, but we let them through, so we can fail-open.
 }
 
@@ -64,7 +67,7 @@ function botalert_ACODE($custid, $authtoken)
 	return $botalert_snippet;
 }
 
-function botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable=true)
+function botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable=true, $ba_noscript_action='1')
 {
         global $ba_api, $ba_api_ver;
         $url = "http://" . $custid . ".botalert.com/VALI?custid=" . $custid . "&auth=" . $authtoken;
@@ -78,12 +81,14 @@ function botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid, $have_bo
             $url .= "&_data=direct";
         $hpmxResult = _botalert_get_http( $url );
         if( ! $have_botblock )
-            return true;
+            return true;  // BotAlert, but not BotBlock, let through because BotAlert does metrics only, no real-time results.
         # http://pramana.com/resources/validation-results/
         if( $hpmxResult == -1 || $hpmxResult == -3 ) // -1 = Bot, -3 = Backdoor
                 return false;
         if( $hpmxResult == 0 && ! $neutral_is_acceptable ) // 0 = Neutral
                 return false; // Neutral, but not acceptable
+        if( $hpmxResult == -4 && $ba_noscript_action == 1 )
+                return false; // reject noscript user, when $ba_noscript_action is on
         return true; // 1 = Human, others are errors, but we let them through, so we can fail-open.
 }
 
@@ -101,12 +106,12 @@ function botalert_VALInoscript($custid, $authtoken)
         return true;
 }
 
-function botalert_VALIandVERD($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable=true)
+function botalert_VALIandVERD($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable=true, $ba_noscript_action='1')
 {
-        botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable);
+        botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable, $ba_noscript_action);
         if( ! $have_botblock )
             return true;
-        return botblock_VERDict($custid, $authtoken, $hpmxRequestId, $neutral_is_acceptable);
+        return botblock_VERDict($custid, $authtoken, $hpmxRequestId, $neutral_is_acceptable, $ba_noscript_action);
 }
 
 function _botalert_get_http($url, $append_headers=true)
@@ -114,8 +119,7 @@ function _botalert_get_http($url, $append_headers=true)
     if(!function_exists("curl_init"))
     {
         error_log("CURL not AVAILABLE. Please install PHP-cURL");
-        //return "var botalert_error='curl not availble. please install';";
-        return "";
+        return "<div id='botalert'><!-- BotAlert/BotBlock not active: cURL not available -></div>";
     }
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
@@ -156,7 +160,7 @@ function _botalert_get_headers()
     }
     $use_ssl=false;
     if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") $use_ssl = true;
-    $port = (isset($_SERVER["SERVER_PORT"]) && ((!$isHTTPS && $_SERVER["SERVER_PORT"] != "80") || ($isHTTPS && $_SERVER["SERVER_PORT"] != "443")));
+    $port = (isset($_SERVER["SERVER_PORT"]) && ((!$use_ssl && $_SERVER["SERVER_PORT"] != "80") || ($use_ssl && $_SERVER["SERVER_PORT"] != "443")));
     $port = ($port) ? ':'.$_SERVER["SERVER_PORT"] : '';
     $xurl = "http" . ($use_ssl ? 's' : '') ."://" . $_SERVER["SERVER_NAME"] . $port . $_SERVER["REQUEST_URI"];
     if(strpos($xurl, "?") !== FALSE) $xurl=substr($xurl,0,strpos($xurl, "?"));
