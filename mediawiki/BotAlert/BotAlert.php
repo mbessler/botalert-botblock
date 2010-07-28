@@ -6,9 +6,10 @@ global $wgExtensionFunctions;
 $wgExtensionFunctions[] = 'baSetup';
 $wgExtensionCredits['other'][] = array(
 	'name' => 'BotAlert-MediaWiki',
-	'description' => 'MediaWiki extension for Pramana\'s CAPTCHA replacement products BotAlert and BotBlock',
+	'description' => 'MediaWiki extension for [http://www.pramana.com/ Pramana]\'s CAPTCHA replacement products BotAlert and BotBlock',
 	'url' => 'http://www.mediawiki.org/wiki/Extension:BotAlert',
-	'author' => 'Pramana Inc.'
+	'author' => '[http://www.pramana.com/ Pramana Inc.]',
+	'version' => '1.0.1',
 );
 
 #global $wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken, $wgBotAlertConfigHaveBotBlock, $wgBotAlertConfigTreatNeutralAsBad;
@@ -24,11 +25,7 @@ require_once( 'php-common/botalertlib.php' );
 global $wgBotAlert, $wgBotAlertClass, $wgBotAlertTriggers;
 global $wgBotAlertConfigHaveBotBlock;
 $wgBotAlert = null;
-if( $wgBotAlertConfigHaveBotBlock ) {
-    $wgBotAlertClass = 'BotBlock';
-} else {
-    $wgBotAlertClass = 'BotAlert';
-}
+$wgBotAlertClass = 'BotAlert';
 
 
 $wgBotAlertTriggers = array();
@@ -39,6 +36,9 @@ $wgBotAlertTriggers['login']      = false;  // Special:Userlogin
 
 global $wgSpecialPages;
 $wgSpecialPages['BotAlert'] = array( 'SpecialPage', 'BotAlert', '', false, false, false );
+
+global $wgArticlePath;
+$noscript_url = str_replace('$1', 'Special:BotAlert/noscript', $wgArticlePath);
 
 function baSetup() {
 	global $wgMessageCache, $wgBotAlertMessages;
@@ -59,101 +59,49 @@ function baSetup() {
 	$wgHooks['ParserAfterTidy'][] = array( $wgBotAlert, 'injectJS' );
 
 
-        if( $wgBotAlertConfigHaveBotBlock ) {
+#        if( $wgBotAlertConfigHaveBotBlock ) {
 		$wgHooks['AbortNewAccount'][] = array( &$wgBotAlert, 'confirmUserCreate' );
 		$wgHooks['AbortLogin'][] = array( &$wgBotAlert, 'confirmUserLogin' );
 		$wgHooks['EditPage::attemptSave'][] = array( &$wgBotAlert, 'confirmEdit' );
-		$wgHooks['BeforePageDisplay'][] = array( &$wgBotAlert, 'addButtonHandler' );
-	}
+#	}
 }
 
 
 function wfSpecialBotAlert( $par = null ) {
         global $wgBotAlert;
-        return $wgBotAlert->showHelp();
+	if( $par == 'noscript' )
+		return $wgBotAlert->noscriptProxy();
+	else
+	        return $wgBotAlert->showHelp();
 }
 
-class BotBlock extends BotAlert {
-	function BotBlock() {
-		$this->BotAlert();
-	}
-        function confirmUserCreate( $u, &$message ) {
-                global $wgBotAlertTriggers;
-                if( $wgBotAlertTriggers['createaccount'] ) {
-                        if( !$this->verdict() ) {
-                                $message = wfMsg( 'botblock-validate-fail' );
-                                return false;
-                        }
-                }
-                return true;
-        }
-	function confirmUserLogin( $u, $pass, &$retval ) {
-		if( !$this->verdict() ) {
-			$message = wfMsg( 'botblock-validate-fail' );
-			$retval = LoginForm::WRONG_PASS;
-			return false;
-		}
-		return true;
-	}
-	function confirmEdit( $editpage ) {
-		if( !$this->verdict() ) {
-			$message = wfMsg( 'botblock-validate-fail' );
-			#$editpage->showEditForm( );
-			$editpage->spamPage( );
-			return false;
-		}
-		return true;
-	}
-        function verdict() {
-		if( $this->VERD() ) {
-                        $this->log( "human" );
-                        return true;
-                } else {
-                        $this->log( "bot" );
-                        return false;
-                }
-        }
- 	function VERD() {
-		global $wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken, $wgBotAlertConfigTreatNeutralAsBad;
-		global $wgRequest;
+function mediawiki_VALI ( $refid1 ) {
+	global $wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken, $wgBotAlertConfigTreatNeutralAsBad, $wgBotAlertNoScriptAction, $wgBotAlertConfigHaveBotBlock;
+        global $wgRequest;
 
-		return botblock_VERDict($wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken, $_REQUEST['hpmxRequestId'], $wgBotAlertConfigTreatNeutralAsBad);
-	}
-	
+        return botalert_VALIdate($wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken, $_REQUEST['hpmxRequestId'], $refid1, $wgBotAlertConfigHaveBotBlock, $wgBotAlertConfigTreatNeutralAsBad, $wgBotAlertNoScriptAction);
 }
+
 class BotAlert {
         static $hasRun = false;
         static $injectHere = false;
 
         function BotAlert() {
-		$this->buttonname = "nobutton";
-		$this->formname = "noform";
-		$this->refid = "norefid";
         }
 
 	function injectJS( &$parser, &$text ) {
+		global $noscript_url;
 		if (self::$hasRun or ! self::$injectHere ) return true;
 		self::$hasRun = true;
 
 		global $wgOut, $wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken;
-		$text .= botalert_AUTHenticate($wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken);
-		#$text .= "<div id='botalert'>" . file_get_contents("http://$wgBotAlertConfigCustID.botalert.com/AUTH?custid=$wgBotAlertConfigCustID&auth=$wgBotAlertConfigAuthToken") . "</div>";
-		return true;
-	}
-	function addButtonHandler( &$out ) {
-		if (! self::$injectHere ) return true;
-		$text =& $out->mBodytext;
-		$repl = 'onclick="triggerPramana(document.'.$this->formname.', '.$this->refid.'); return false;"';
-		$text = str_replace( 'name="'.$this->buttonname.'"', 'name="'.$this->buttonname.'" '. $repl, $text );
+		$text .= botalert_ACODE($wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken, $noscript_url);
 		return true;
 	}
 	function injectUserLogin( &$template ) {
 		global $wgBotAlertTriggers;
 		if( $wgBotAlertTriggers['login'] ) {
 			self::$injectHere = true;
- 			$this->buttonname = "wpLoginattempt";
-			$this->formname = "userlogin";
-			$this->refid = "document.userlogin.wpName.value";
 		}
 		return true;
 	}
@@ -161,9 +109,6 @@ class BotAlert {
                 global $wgBotAlertTriggers;
                 if( $wgBotAlertTriggers['createaccount'] ) {
 			self::$injectHere = true;
- 			$this->buttonname = "wpCreateaccount";
-			$this->formname = "userlogin2";
-			$this->refid = "document.userlogin2.wpName.value";
                 }
                 return true;
         }
@@ -171,15 +116,59 @@ class BotAlert {
                 global $wgBotAlertTriggers;
                 if( $wgBotAlertTriggers['edit'] ) {
 			self::$injectHere = true;
- 			$this->buttonname = "wpSave";
-			$this->formname = "editform";
-			$this->refid = "wgUserName";
-               }
+                }
                 return true;
         }
+
+        function confirmUserCreate( $u, &$message ) {
+                global $wgBotAlertTriggers;
+                if( $wgBotAlertTriggers['createaccount'] ) {
+			if( ! mediawiki_VALI($_POST['wpName2']) ) {
+                                $message = wfMsg( 'botblock-validate-fail' );
+                                return false;
+                        }
+                }
+                return true;
+        }
+	function confirmUserLogin( $u, $pass, &$retval ) {
+		if( ! mediawiki_VALI($_POST['wpName']) ) {
+			$message = wfMsg( 'botblock-validate-fail' );
+			$retval = LoginForm::WRONG_PASS;
+			return false;
+		}
+		return true;
+	}
+	function confirmEdit( $editpage ) {
+		global $wgUser;
+                $username = $wgUser->getName();
+		if( ! mediawiki_VALI( $username ) ) {
+			$message = wfMsg( 'botblock-validate-fail' );
+			#$editpage->showEditForm( );
+			$editpage->spamPage( );
+			return false;
+		}
+		return true;
+	}
+
+
         function log( $message ) {
                 wfDebugLog( 'BotAlert', 'BotAlert: ' . $message );
         }
+	function noscriptProxy() {
+		global $wgOut;
+		global $wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken;
+		botalert_VALInoscript($wgBotAlertConfigCustID, $wgBotAlertConfigAuthToken);
+		$wgOut->disable();
+
+		$date = date("D, d M Y H:i:s e");
+		header("Content-type: text/html");
+		header("Date: $date");
+		header("Last-Modified: $date");
+		header("Expires: $date");
+		header("Pragma: no-cache");
+		header("Cache-Control: no-cache");
+		#header("ETag: $mexpr");
+	}
 	function showHelp() {
 		global $wgOut;
 		$wgOut->setPageTitle( wfMsg( 'botalerthelp-title' ) );
