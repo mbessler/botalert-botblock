@@ -4,7 +4,7 @@ $ba_api="baphp";
 $ba_api_ver="1.2";
 $ba_api_err="-100";
 
-function botblock_VERDict($custid, $authtoken, $hpmxRequestId, $neutral_is_acceptable=true, $ba_noscript_action='1')
+function botblock_VERDict($custid, $authtoken, $hpmxRequestId, $neutral_is_acceptable=true, $ba_noscript_action=true)
 {
         $url = "http://" . $custid . ".botalert.com/VERD?custid=" . $custid . "&auth=" . $authtoken . "&id=" . $hpmxRequestId; 
         if(function_exists("curl_init"))
@@ -17,7 +17,7 @@ function botblock_VERDict($custid, $authtoken, $hpmxRequestId, $neutral_is_accep
                 return false;
         if( $hpmxResult == 0 && ! $neutral_is_acceptable ) // 0 = Neutral
                 return false; // Neutral, but not acceptable
-        if( $hpmxResult == -4 && $ba_noscript_action == '1' )
+        if( $hpmxResult == -4 && $ba_noscript_action )
                 return false; // reject noscript user, when $ba_noscript_action is on
         return true; // 1 = Human, others are errors, but we let them through, so we can fail-open.
 }
@@ -73,7 +73,7 @@ function botalert_ACODE($custid, $authtoken, $noscript_url='')
 	return $botalert_snippet;
 }
 
-function botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable=true, $ba_noscript_action='1')
+function botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable=true, $ba_noscript_action=true)
 {
         global $ba_api, $ba_api_ver;
         $url = "http://" . $custid . ".botalert.com/VALI?custid=" . $custid . "&auth=" . $authtoken;
@@ -93,7 +93,7 @@ function botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid, $have_bo
                 return false;
         if( $hpmxResult == 0 && ! $neutral_is_acceptable ) // 0 = Neutral
                 return false; // Neutral, but not acceptable
-        if( $hpmxResult == -4 && $ba_noscript_action == '1' )
+        if( $hpmxResult == -4 && $ba_noscript_action )
                 return false; // reject noscript user, when $ba_noscript_action is on
         return true; // 1 = Human, others are errors, but we let them through, so we can fail-open.
 }
@@ -112,7 +112,7 @@ function botalert_VALInoscript($custid, $authtoken)
         return true;
 }
 
-function botalert_VALIandVERD($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable=true, $ba_noscript_action='1')
+function botalert_VALIandVERD($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable=true, $ba_noscript_action=true)
 {
         botalert_VALIdate($custid, $authtoken, $hpmxRequestId, $refid, $have_botblock, $neutral_is_acceptable, $ba_noscript_action);
         if( ! $have_botblock )
