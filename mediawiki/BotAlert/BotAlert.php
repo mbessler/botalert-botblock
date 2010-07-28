@@ -18,6 +18,7 @@ $wgExtensionCredits['other'][] = array(
 #$wgBotAlertConfigAuthToken = "please_replace_wgBotAlertConfigAuthToken";
 #$wgBotAlertConfigHaveBotBlock = false;
 #$wgBotAlertConfigTreatNeutralAsBad = false;
+#$wgBotAlertNoScriptAction = true;
 
 require_once( 'BotAlert.i18n.php' );
 require_once( 'php-common/botalertlib.php' );
