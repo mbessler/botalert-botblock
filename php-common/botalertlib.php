@@ -1,7 +1,7 @@
 <?php
 global $ba_api, $ba_api_ver, $ba_api_err;
 $ba_api="baphp";
-$ba_api_ver="1.1";
+$ba_api_ver="1.2";
 $ba_api_err="-100";
 
 function botblock_VERDict($custid, $authtoken, $hpmxRequestId, $neutral_is_acceptable=true, $ba_noscript_action='1')
@@ -55,7 +55,7 @@ function botalert_AUTHenticate($custid, $authtoken)
 	return $botalert_snippet;
 }
 
-function botalert_ACODE($custid, $authtoken)
+function botalert_ACODE($custid, $authtoken, $noscript_url='')
 {
         global $ba_api, $ba_api_ver, $ba_api_err;
 	$use_ssl = false;
@@ -69,7 +69,7 @@ function botalert_ACODE($custid, $authtoken)
         //$botalert_snippet .= '</script>';
         //replace ##PHAJ2BAF## with noscript proxy page
 	if($botalert_snippet == $ba_api_err) $botalert_snippet = "";
-        $botalert_snippet = str_replace('##PHAJ2BAF##','/wp-content/plugins/botalertbotblock/noscript.php',$botalert_snippet);
+        $botalert_snippet = str_replace('##PHAJ2BAF##', $noscript_url, $botalert_snippet);
 	return $botalert_snippet;
 }
 
