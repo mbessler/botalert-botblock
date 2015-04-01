@@ -9,5 +9,5 @@ BotBlock is a CAPTCHA replacement or alternative while BotAlert gives you metric
 
 Available so far (in SVN repository and/or Downloads):
 
-* [MediaWikiPlugin](MediaWikiPlugin)
-* [WordpressPlugin](WordpressPlugin)
+* [MediaWikiPlugin](https://github.com/mbessler/botalert-botblock/wiki/MediaWikiPlugin)
+* [WordpressPlugin](https://github.com/mbessler/botalert-botblock/wiki/WordpressPlugin)
